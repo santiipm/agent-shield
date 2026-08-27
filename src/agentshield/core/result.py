@@ -13,3 +13,4 @@ class AttackResult(BaseModel):
     success: bool
     confidence: float = Field(ge=0.0, le=1.0)
     evidence: str
+    error: str | None = None
