@@ -1,0 +1,21 @@
+"""Ollama-backed agent that calls a local Ollama server via HTTP."""
+
+import httpx
+
+
+class OllamaAgent:
+    """Agent that sends prompts to a local Ollama server and returns responses."""
+
+    def __init__(self, model: str, base_url: str = "http://localhost:11434") -> None:
+        self._model = model
+        self._base_url = base_url
+        self._client = httpx.AsyncClient(timeout=60.0)
+
+    async def invoke(self, message: str) -> str:
+        """POST the prompt to Ollama and return the generated text."""
+        url = f"{self._base_url}/api/generate"
+        payload = {"model": self._model, "prompt": message, "stream": False}
+        response = await self._client.post(url, json=payload)
+        response.raise_for_status()
+        data = response.json()
+        return str(data["response"])
