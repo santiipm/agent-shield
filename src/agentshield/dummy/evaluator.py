@@ -7,7 +7,7 @@ from agentshield.core.result import AttackResult
 class DummyEvaluator:
     """Evaluator that always reports success for testing flow validation."""
 
-    def evaluate(
+    async def evaluate(
         self, attack: Attack, turns: list[str], responses: list[str]
     ) -> AttackResult:
         """Always return a successful result."""

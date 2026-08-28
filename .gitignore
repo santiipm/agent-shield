@@ -75,3 +75,4 @@ Thumbs.db
 
 # ruff
 .ruff_cache/
+results/

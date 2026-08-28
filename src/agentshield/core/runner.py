@@ -24,7 +24,7 @@ class Runner:
                     response = await agent.invoke(turn)
                     responses.append(response)
 
-                result = evaluator.evaluate(attack, turns, responses)
+                result = await evaluator.evaluate(attack, turns, responses)
                 results.append(result)
 
             except Exception as e:

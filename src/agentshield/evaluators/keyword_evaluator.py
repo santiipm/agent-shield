@@ -10,7 +10,7 @@ class KeywordEvaluator:
     def __init__(self, target_phrase: str) -> None:
         self._target_phrase = target_phrase
 
-    def evaluate(
+    async def evaluate(
         self, attack: Attack, turns: list[str], responses: list[str]
     ) -> AttackResult:
         """Check case-insensitively whether the target phrase is in any response."""
