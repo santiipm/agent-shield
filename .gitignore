@@ -76,3 +76,4 @@ Thumbs.db
 # ruff
 .ruff_cache/
 results/
+agentshield.db

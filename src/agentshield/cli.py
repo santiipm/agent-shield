@@ -1,6 +1,8 @@
 import asyncio
 
 import typer
+from rich.console import Console
+from rich.table import Table
 
 from agentshield import __version__
 from agentshield.core.attack import Attack
@@ -40,6 +42,7 @@ async def _run_attacks(model: str) -> None:
     from agentshield.attacks.prompt_injection.role_override import RoleOverrideAttack
     from agentshield.core.runner import Runner
     from agentshield.evaluators.keyword_evaluator import KeywordEvaluator
+    from agentshield.persistence.db import get_engine, init_db, save_run
     from agentshield.reporting.console_report import print_summary
     from agentshield.reporting.json_report import save_report
 
@@ -66,6 +69,98 @@ async def _run_attacks(model: str) -> None:
     print_summary(all_results)
     report_path = save_report(all_results)
     typer.echo(f"Report saved to: {report_path}")
+
+    engine = get_engine("agentshield.db")
+    init_db(engine)
+    run_id = save_run(engine, model, report_path, all_results)
+    typer.echo(f"Run persisted with id: {run_id}")
+
+
+@app.command()
+def history() -> None:
+    """List past evaluation runs."""
+    from agentshield.persistence.db import get_engine, init_db, list_runs
+
+    engine = get_engine("agentshield.db")
+    init_db(engine)
+    runs = list_runs(engine)
+
+    console = Console()
+    table = Table(title="Evaluation History")
+    table.add_column("Run ID", style="bold")
+    table.add_column("Timestamp")
+    table.add_column("Model")
+
+    for run in runs:
+        table.add_row(
+            str(run["id"]),
+            str(run["timestamp"]),
+            str(run["model"]),
+        )
+
+    console.print(table)
+
+
+@app.command()
+def compare(
+    run_id_1: int = typer.Argument(..., help="First run ID to compare"),
+    run_id_2: int = typer.Argument(..., help="Second run ID to compare"),
+) -> None:
+    """Compare two runs by attack, showing improvements/regressions."""
+    from agentshield.persistence.db import get_engine, get_run_results, init_db
+
+    engine = get_engine("agentshield.db")
+    init_db(engine)
+
+    results_1 = get_run_results(engine, run_id_1)
+    results_2 = get_run_results(engine, run_id_2)
+
+    attacks_1: dict[str, bool] = {
+        str(r["attack_name"]): bool(r["success"]) for r in results_1
+    }
+    attacks_2: dict[str, bool] = {
+        str(r["attack_name"]): bool(r["success"]) for r in results_2
+    }
+
+    all_attack_names = sorted(set(attacks_1) | set(attacks_2))
+
+    console = Console()
+    table = Table(title=f"Comparison: Run {run_id_1} vs Run {run_id_2}")
+    table.add_column("Attack", style="bold")
+    table.add_column(f"Run {run_id_1}")
+    table.add_column(f"Run {run_id_2}")
+    table.add_column("Verdict")
+
+    for attack_name in all_attack_names:
+        in_1 = attack_name in attacks_1
+        in_2 = attack_name in attacks_2
+
+        if in_1 and in_2:
+            success_1 = attacks_1[attack_name]
+            success_2 = attacks_2[attack_name]
+            col_1 = "VULNERABLE" if success_1 else "RESISTED"
+            col_2 = "VULNERABLE" if success_2 else "RESISTED"
+
+            if success_1 and not success_2:
+                verdict = "[green]IMPROVED[/green]"
+            elif not success_1 and success_2:
+                verdict = "[red]REGRESSED[/red]"
+            else:
+                verdict = "UNCHANGED"
+        elif in_1:
+            success_1 = attacks_1[attack_name]
+            col_1 = "VULNERABLE" if success_1 else "RESISTED"
+            col_2 = "N/A"
+            verdict = "[yellow]N/A[/yellow]"
+        else:
+            col_1 = "N/A"
+            success_2 = attacks_2[attack_name]
+            col_2 = "VULNERABLE" if success_2 else "RESISTED"
+            verdict = "[yellow]N/A[/yellow]"
+
+        table.add_row(attack_name, col_1, col_2, verdict)
+
+    console.print(table)
 
 
 @app.callback(invoke_without_command=True)
