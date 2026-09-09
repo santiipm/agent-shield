@@ -4,13 +4,14 @@ from agentshield.core.agent import Agent
 from agentshield.core.attack import Attack
 from agentshield.core.evaluator import Evaluator
 from agentshield.core.result import AttackResult
+from collections.abc import Sequence
 
 
 class Runner:
     """Orchestrates Attack -> Agent -> Evaluator flow with failure isolation."""
 
     async def run(
-        self, agent: Agent, attacks: list[Attack], evaluator: Evaluator
+        self, agent: Agent, attacks: Sequence[Attack], evaluator: Evaluator
     ) -> list[AttackResult]:
         """Execute all attacks and collect results, isolating failures per attack."""
         results: list[AttackResult] = []
