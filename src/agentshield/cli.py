@@ -27,6 +27,9 @@ def run(
     model: str = typer.Option(..., help="Ollama model name to use for attacks"),
 ) -> None:
     """Run all prompt injection attacks against the specified model."""
+    from agentshield.logging_config import configure_logging
+
+    configure_logging()
     asyncio.run(_run_attacks(model))
 
 
@@ -161,6 +164,14 @@ def compare(
         table.add_row(attack_name, col_1, col_2, verdict)
 
     console.print(table)
+
+
+@app.command()
+def serve() -> None:
+    """Start the read-only API server on http://127.0.0.1:8000."""
+    from agentshield.api.app import main as api_main
+
+    api_main()
 
 
 @app.callback(invoke_without_command=True)
