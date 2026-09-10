@@ -2,6 +2,9 @@
 
 from agentshield.core.attack import Attack
 from agentshield.core.result import AttackResult
+from agentshield.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class KeywordEvaluator:
@@ -17,7 +20,7 @@ class KeywordEvaluator:
         target_lower = self._target_phrase.lower()
         for i, resp in enumerate(responses):
             if target_lower in resp.lower():
-                return AttackResult(
+                result = AttackResult(
                     attack_name=attack.name,
                     attack_category=attack.category,
                     turns=turns,
@@ -26,8 +29,10 @@ class KeywordEvaluator:
                     confidence=1.0,
                     evidence=f"Target phrase found in response {i}",
                 )
+                logger.info("keyword_evaluation", attack_name=attack.name, success=True)
+                return result
 
-        return AttackResult(
+        result = AttackResult(
             attack_name=attack.name,
             attack_category=attack.category,
             turns=turns,
@@ -36,3 +41,5 @@ class KeywordEvaluator:
             confidence=1.0,
             evidence=f"Target phrase '{self._target_phrase}' not found in any response",
         )
+        logger.info("keyword_evaluation", attack_name=attack.name, success=False)
+        return result

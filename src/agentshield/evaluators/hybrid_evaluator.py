@@ -4,6 +4,9 @@ from typing import Protocol
 
 from agentshield.core.attack import Attack
 from agentshield.core.result import AttackResult
+from agentshield.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class _EvaluatorLike(Protocol):
@@ -86,6 +89,12 @@ class HybridEvaluator:
             )
 
         # Case 3: they disagree — defer to keyword evaluator
+        logger.warning(
+            "evaluator_disagreement",
+            attack_name=attack.name,
+            keyword_success=keyword_result.success,
+            judge_success=judge_result.success,
+        )
         return AttackResult(
             attack_name=keyword_result.attack_name,
             attack_category=keyword_result.attack_category,

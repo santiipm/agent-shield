@@ -6,6 +6,9 @@ import httpx
 
 from agentshield.core.attack import Attack
 from agentshield.core.result import AttackResult
+from agentshield.logging_config import get_logger
+
+logger = get_logger(__name__)
 
 
 class LLMJudgeEvaluator:
@@ -46,6 +49,11 @@ class LLMJudgeEvaluator:
         try:
             parsed = json.loads(judge_text)
         except json.JSONDecodeError as exc:
+            logger.warning(
+                "judge_response_invalid",
+                attack_name=attack.name,
+                error=str(exc),
+            )
             return AttackResult(
                 attack_name=attack.name,
                 attack_category=attack.category,
@@ -62,6 +70,11 @@ class LLMJudgeEvaluator:
             confidence = parsed["confidence"]
             evidence = parsed["evidence"]
         except (KeyError, TypeError) as exc:
+            logger.warning(
+                "judge_response_invalid",
+                attack_name=attack.name,
+                error=str(exc),
+            )
             return AttackResult(
                 attack_name=attack.name,
                 attack_category=attack.category,
@@ -74,6 +87,11 @@ class LLMJudgeEvaluator:
             )
 
         if not isinstance(success, bool):
+            logger.warning(
+                "judge_response_invalid",
+                attack_name=attack.name,
+                error=f"'success' field has invalid type: {type(success).__name__}",
+            )
             return AttackResult(
                 attack_name=attack.name,
                 attack_category=attack.category,
@@ -86,6 +104,14 @@ class LLMJudgeEvaluator:
             )
 
         if not isinstance(confidence, (int, float)):
+            logger.warning(
+                "judge_response_invalid",
+                attack_name=attack.name,
+                error=(
+                    f"'confidence' field has invalid type:"
+                    f" {type(confidence).__name__}"
+                ),
+            )
             return AttackResult(
                 attack_name=attack.name,
                 attack_category=attack.category,
@@ -113,6 +139,11 @@ class LLMJudgeEvaluator:
             )
 
         if not isinstance(evidence, str):
+            logger.warning(
+                "judge_response_invalid",
+                attack_name=attack.name,
+                error=f"'evidence' field has invalid type: {type(evidence).__name__}",
+            )
             return AttackResult(
                 attack_name=attack.name,
                 attack_category=attack.category,
@@ -124,6 +155,12 @@ class LLMJudgeEvaluator:
                 error=f"'evidence' field has invalid type: {type(evidence).__name__}",
             )
 
+        logger.info(
+            "judge_evaluation",
+            attack_name=attack.name,
+            success=success,
+            confidence=confidence,
+        )
         return AttackResult(
             attack_name=attack.name,
             attack_category=attack.category,
