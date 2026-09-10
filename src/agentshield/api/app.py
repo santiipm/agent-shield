@@ -2,8 +2,12 @@
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from sqlalchemy.engine import Engine
 
 from agentshield.persistence.db import get_engine, get_run_results, init_db, list_runs
@@ -36,6 +40,10 @@ async def _lifespan(app: FastAPI) -> AsyncIterator[None]:  # noqa: ARG001
 
 
 app = FastAPI(title="AgentShield API", version="0.1.0", lifespan=_lifespan)
+
+_BASE_DIR = Path(__file__).parent
+templates = Jinja2Templates(directory=_BASE_DIR / "templates")
+app.mount("/static", StaticFiles(directory=_BASE_DIR / "static"), name="static")
 
 
 @app.get("/api/runs", response_model=list[RunSummary])
@@ -149,6 +157,25 @@ def compare_runs(run_id_1: int, run_id_2: int) -> list[CompareEntry]:
             )
 
     return entries
+
+
+@app.get("/dashboard/runs", response_class=HTMLResponse)
+def runs_dashboard(request: Request) -> HTMLResponse:
+    """Render the runs list page."""
+    engine = _get_engine()
+    rows = list_runs(engine)
+    runs = [
+        RunSummary(
+            id=int(r["id"]),  # type: ignore[call-overload]
+            timestamp=r["timestamp"],  # type: ignore[arg-type]
+            model=str(r["model"]),
+        )
+        for r in rows
+    ]
+    html = templates.TemplateResponse(
+        request, "runs_list.html", {"runs": runs}
+    )
+    return html
 
 
 def main() -> None:
