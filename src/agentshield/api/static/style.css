@@ -1,12 +1,5 @@
-/* ==========================================================================
-   AgentShield Dashboard — design tokens
-   Adapted from docs/design.md. Berkeley Mono throughout; flat, hairline-
-   bordered, no shadows, no gradients. rounded.none on containers,
-   rounded.sm (4px) on badges/buttons only.
-   ========================================================================== */
-
 :root {
-  /* Colors */
+  
   --color-ink: #201d1d;
   --color-ink-deep: #0f0000;
   --color-charcoal: #302c2c;
@@ -27,17 +20,16 @@
   --color-danger: #ff3b30;
   --color-success: #30d158;
 
-  /* Semantic mapping — active use on this surface, not reserved */
   --color-vulnerable: var(--color-danger);
   --color-resisted: var(--color-success);
   --color-error-state: var(--color-warning);
   --color-neutral: var(--color-mute);
 
-  /* Typography */
+  
   --font-mono: "Berkeley Mono", ui-monospace, "SF Mono", "Cascadia Code",
     Consolas, monospace;
 
-  /* Spacing scale */
+  
   --space-xxs: 1px;
   --space-xs: 4px;
   --space-sm: 8px;
@@ -81,9 +73,6 @@ a:hover {
   color: var(--color-ink-deep);
 }
 
-/* ==========================================================================
-   Layout
-   ========================================================================== */
 
 .page {
   max-width: 960px;
@@ -91,9 +80,6 @@ a:hover {
   padding: var(--space-xl) var(--space-lg);
 }
 
-/* ==========================================================================
-   Nav
-   ========================================================================== */
 
 .primary-nav {
   display: flex;
@@ -129,9 +115,6 @@ a:hover {
   color: var(--color-ink);
 }
 
-/* ==========================================================================
-   Section label — bare heading line above a hairline rule
-   ========================================================================== */
 
 .section-label {
   font-size: 16px;
@@ -198,9 +181,7 @@ a:hover {
   white-space: nowrap;
 }
 
-/* ==========================================================================
-   Status badge
-   ========================================================================== */
+
 
 .status-badge {
   display: inline-block;
@@ -233,9 +214,48 @@ a:hover {
   color: var(--color-neutral);
 }
 
-/* ==========================================================================
-   Empty state
-   ========================================================================== */
+
+
+.back-link {
+  display: inline-block;
+  font-size: 14px;
+  color: var(--color-mute);
+  text-decoration: none;
+  margin-bottom: var(--space-lg);
+}
+
+.back-link:hover {
+  color: var(--color-ink);
+}
+
+
+
+.run-card {
+  border: 1px solid var(--color-hairline);
+  padding: var(--space-lg);
+  margin-bottom: var(--space-xxl);
+}
+
+.run-card__row {
+  display: flex;
+  padding: var(--space-xs) 0;
+}
+
+.run-card__label {
+  width: 120px;
+  color: var(--color-mute);
+  font-size: 14px;
+}
+
+.run-card__value {
+  color: var(--color-ink);
+  font-weight: 500;
+}
+
+.cell-muted {
+  color: var(--color-mute);
+}
+
 
 .empty-state {
   padding: var(--space-xxl) var(--space-lg);
@@ -250,10 +270,6 @@ a:hover {
   color: var(--color-ink);
 }
 
-/* ==========================================================================
-   Buttons (inherited from marketing system, unused on this page but
-   available for future dashboard views)
-   ========================================================================== */
 
 .button-primary {
   display: inline-block;

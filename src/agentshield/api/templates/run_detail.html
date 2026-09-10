@@ -3,13 +3,63 @@
 {% block title %}Run #{{ run.id }} — AgentShield{% endblock %}
 
 {% block content %}
-  <h1>Run #{{ run.id }}</h1>
-  <p>Model: {{ run.model }}</p>
+  <a href="/dashboard/runs" class="back-link">&larr; All runs</a>
 
-  <h2>Results</h2>
-  <ul>
-    {% for result in results %}
-      <li>{{ result.attack_name }}: {{ "Success" if result.success else "Failure" }}</li>
-    {% endfor %}
-  </ul>
+  <div class="run-card">
+    <div class="run-card__row">
+      <span class="run-card__label">Run</span>
+      <span class="run-card__value">#{{ run.id }}</span>
+    </div>
+    <div class="run-card__row">
+      <span class="run-card__label">Model</span>
+      <span class="run-card__value">{{ run.model }}</span>
+    </div>
+    <div class="run-card__row">
+      <span class="run-card__label">Timestamp</span>
+      <span class="run-card__value">{{ run.timestamp }}</span>
+    </div>
+  </div>
+
+  <h2 class="section-label">Attack Results</h2>
+
+  {% if results %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Attack</th>
+          <th>Category</th>
+          <th>Result</th>
+          <th>Confidence</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in results %}
+          <tr>
+            <td>{{ result.attack_name }}</td>
+            <td class="cell-muted">{{ result.attack_category }}</td>
+            <td>
+              {% if result.error %}
+                <span class="status-badge status-badge--error">ERROR</span>
+              {% elif result.success %}
+                <span class="status-badge status-badge--vulnerable">VULNERABLE</span>
+              {% else %}
+                <span class="status-badge status-badge--resisted">RESISTED</span>
+              {% endif %}
+            </td>
+            <td class="cell-id">
+              {% if result.error %}
+                &mdash;
+              {% else %}
+                {{ (result.confidence * 100) | round | int }}%
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      No attack results recorded for this run.
+    </div>
+  {% endif %}
 {% endblock %}
