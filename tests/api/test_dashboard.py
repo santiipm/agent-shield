@@ -127,3 +127,46 @@ def test_runs_dashboard_links_are_correct() -> None:
     # Check that each link is a proper anchor
     assert '<a href="/dashboard/runs/1">' in body
     assert '<a href="/dashboard/runs/2">' in body
+
+
+def test_run_detail_returns_200() -> None:
+    """GET /dashboard/runs/1 returns 200 with HTML content-type."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/runs/1")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+
+def test_run_detail_contains_model_name() -> None:
+    """GET /dashboard/runs/1 response body contains the model name."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/runs/1")
+    body = response.text
+    assert "gpt-4" in body
+
+
+def test_run_detail_contains_attack_names() -> None:
+    """GET /dashboard/runs/1 response body contains the attack names."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/runs/1")
+    body = response.text
+    assert "injection" in body
+
+
+def test_run_detail_returns_404_for_nonexistent() -> None:
+    """GET /dashboard/runs/99999 returns 404."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/runs/99999")
+    assert response.status_code == 404

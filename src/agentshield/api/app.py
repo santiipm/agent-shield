@@ -10,7 +10,13 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.engine import Engine
 
-from agentshield.persistence.db import get_engine, get_run_results, init_db, list_runs
+from agentshield.persistence.db import (
+    get_engine,
+    get_run_by_id,
+    get_run_results,
+    init_db,
+    list_runs,
+)
 
 from .schemas import AttackResultSummary, CompareEntry, RunDetail, RunSummary
 
@@ -174,6 +180,20 @@ def runs_dashboard(request: Request) -> HTMLResponse:
     ]
     html = templates.TemplateResponse(
         request, "runs_list.html", {"runs": runs}
+    )
+    return html
+
+
+@app.get("/dashboard/runs/{run_id}", response_class=HTMLResponse)
+def run_detail_dashboard(request: Request, run_id: int) -> HTMLResponse:
+    """Render the run detail page."""
+    engine = _get_engine()
+    run = get_run_by_id(engine, run_id)
+    if run is None:
+        raise HTTPException(status_code=404, detail=f"Run {run_id} not found")
+    results = get_run_results(engine, run_id)
+    html = templates.TemplateResponse(
+        request, "run_detail.html", {"run": run, "results": results}
     )
     return html
 

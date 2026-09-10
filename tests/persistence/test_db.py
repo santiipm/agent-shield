@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker
 
 from agentshield.core.result import AttackResult
 from agentshield.persistence.db import (
+    get_run_by_id,
     get_run_results,
     init_db,
     list_runs,
@@ -166,3 +167,39 @@ def test_list_runs_ordering() -> None:
     assert len(runs) == 2
     assert runs[0]["model"] == "second"
     assert runs[1]["model"] == "first"
+
+
+def test_get_run_by_id_found() -> None:
+    """get_run_by_id returns the run when it exists."""
+    engine = _make_engine()
+    init_db(engine)
+
+    results = [
+        AttackResult(
+            attack_name="a",
+            attack_category="c",
+            turns=[],
+            responses=[],
+            success=True,
+            confidence=0.5,
+            evidence="e",
+        ),
+    ]
+
+    save_run(engine, model="gpt-4", json_path="/tmp/run.json", results=results)
+    run = get_run_by_id(engine, 1)
+
+    assert run is not None
+    assert run["id"] == 1
+    assert run["model"] == "gpt-4"
+    assert run["json_path"] == "/tmp/run.json"
+    assert run["timestamp"] is not None
+
+
+def test_get_run_by_id_not_found() -> None:
+    """get_run_by_id returns None when the run does not exist."""
+    engine = _make_engine()
+    init_db(engine)
+
+    run = get_run_by_id(engine, 999)
+    assert run is None

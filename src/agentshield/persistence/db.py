@@ -71,6 +71,21 @@ def list_runs(engine: Engine) -> list[dict[str, object]]:
         ]
 
 
+def get_run_by_id(engine: Engine, run_id: int) -> dict[str, object] | None:
+    """Return a single run by id, or None if not found."""
+    session_factory = sessionmaker(bind=engine)
+    with session_factory() as session:
+        run: Run | None = session.query(Run).filter(Run.id == run_id).first()
+        if run is None:
+            return None
+        return {
+            "id": run.id,
+            "timestamp": run.timestamp,
+            "model": run.model,
+            "json_path": run.json_path,
+        }
+
+
 def get_run_results(engine: Engine, run_id: int) -> list[dict[str, object]]:
     """Return all attack_results rows for a given run_id."""
     session_factory = sessionmaker(bind=engine)

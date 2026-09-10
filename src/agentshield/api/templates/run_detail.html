@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Run #{{ run.id }} — AgentShield{% endblock %}
+
+{% block content %}
+  <h1>Run #{{ run.id }}</h1>
+  <p>Model: {{ run.model }}</p>
+
+  <h2>Results</h2>
+  <ul>
+    {% for result in results %}
+      <li>{{ result.attack_name }}: {{ "Success" if result.success else "Failure" }}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}
