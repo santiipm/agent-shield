@@ -110,6 +110,7 @@ def compare(
     run_id_2: int = typer.Argument(..., help="Second run ID to compare"),
 ) -> None:
     """Compare two runs by attack, showing improvements/regressions."""
+    from agentshield.compare import compare_runs
     from agentshield.persistence.db import get_engine, get_run_results, init_db
 
     engine = get_engine("agentshield.db")
@@ -118,14 +119,7 @@ def compare(
     results_1 = get_run_results(engine, run_id_1)
     results_2 = get_run_results(engine, run_id_2)
 
-    attacks_1: dict[str, bool] = {
-        str(r["attack_name"]): bool(r["success"]) for r in results_1
-    }
-    attacks_2: dict[str, bool] = {
-        str(r["attack_name"]): bool(r["success"]) for r in results_2
-    }
-
-    all_attack_names = sorted(set(attacks_1) | set(attacks_2))
+    entries = compare_runs(results_1, results_2)
 
     console = Console()
     table = Table(title=f"Comparison: Run {run_id_1} vs Run {run_id_2}")
@@ -134,34 +128,26 @@ def compare(
     table.add_column(f"Run {run_id_2}")
     table.add_column("Verdict")
 
-    for attack_name in all_attack_names:
-        in_1 = attack_name in attacks_1
-        in_2 = attack_name in attacks_2
+    for entry in entries:
+        col_1 = "VULNERABLE" if entry.run_1_success else "RESISTED"
+        col_2 = "VULNERABLE" if entry.run_2_success else "RESISTED"
 
-        if in_1 and in_2:
-            success_1 = attacks_1[attack_name]
-            success_2 = attacks_2[attack_name]
-            col_1 = "VULNERABLE" if success_1 else "RESISTED"
-            col_2 = "VULNERABLE" if success_2 else "RESISTED"
-
-            if success_1 and not success_2:
-                verdict = "[green]IMPROVED[/green]"
-            elif not success_1 and success_2:
-                verdict = "[red]REGRESSED[/red]"
-            else:
-                verdict = "UNCHANGED"
-        elif in_1:
-            success_1 = attacks_1[attack_name]
-            col_1 = "VULNERABLE" if success_1 else "RESISTED"
-            col_2 = "N/A"
-            verdict = "[yellow]N/A[/yellow]"
-        else:
+        if entry.run_1_success is None:
             col_1 = "N/A"
-            success_2 = attacks_2[attack_name]
-            col_2 = "VULNERABLE" if success_2 else "RESISTED"
-            verdict = "[yellow]N/A[/yellow]"
+        if entry.run_2_success is None:
+            col_2 = "N/A"
 
-        table.add_row(attack_name, col_1, col_2, verdict)
+        verdict = entry.verdict
+        if verdict == "IMPROVED":
+            verdict_display = "[green]IMPROVED[/green]"
+        elif verdict == "REGRESSED":
+            verdict_display = "[red]REGRESSED[/red]"
+        elif verdict == "N/A":
+            verdict_display = "[yellow]N/A[/yellow]"
+        else:
+            verdict_display = verdict
+
+        table.add_row(entry.attack_name, col_1, col_2, verdict_display)
 
     console.print(table)
 

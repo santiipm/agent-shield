@@ -6,9 +6,17 @@
   <h1 class="section-label">Recent Runs</h1>
 
   {% if runs %}
+    <form id="compare-form" class="compare-bar">
+      <span class="compare-bar__hint">Select two runs to compare</span>
+      <button type="submit" class="button-secondary" id="compare-button" disabled>
+        Compare selected
+      </button>
+    </form>
+
     <table class="data-table">
       <thead>
         <tr>
+          <th class="cell-checkbox"></th>
           <th>Run ID</th>
           <th>Timestamp</th>
           <th>Model</th>
@@ -16,7 +24,10 @@
       </thead>
       <tbody>
         {% for run in runs %}
-          <tr class="is-linked">
+          <tr>
+            <td class="cell-checkbox">
+              <input type="checkbox" class="compare-checkbox" value="{{ run.id }}">
+            </td>
             <td class="cell-id">
               <a href="/dashboard/runs/{{ run.id }}">#{{ run.id }}</a>
             </td>
@@ -35,4 +46,37 @@
       No runs yet — use <code>agentshield run --model &lt;name&gt;</code> to get started.
     </div>
   {% endif %}
+
+  <script>
+    (function () {
+      var checkboxes = document.querySelectorAll(".compare-checkbox");
+      var button = document.getElementById("compare-button");
+      var form = document.getElementById("compare-form");
+
+      function selected() {
+        return Array.prototype.filter.call(checkboxes, function (c) {
+          return c.checked;
+        });
+      }
+
+      checkboxes.forEach(function (checkbox) {
+        checkbox.addEventListener("change", function () {
+          var checked = selected();
+          if (checked.length > 2) {
+            checkbox.checked = false;
+            return;
+          }
+          button.disabled = checked.length !== 2;
+        });
+      });
+
+      form.addEventListener("submit", function (event) {
+        event.preventDefault();
+        var checked = selected();
+        if (checked.length !== 2) return;
+        var ids = checked.map(function (c) { return c.value; });
+        window.location.href = "/dashboard/compare/" + ids[0] + "/" + ids[1];
+      });
+    })();
+  </script>
 {% endblock %}

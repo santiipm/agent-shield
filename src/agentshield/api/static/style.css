@@ -1,5 +1,4 @@
 :root {
-  
   --color-ink: #201d1d;
   --color-ink-deep: #0f0000;
   --color-charcoal: #302c2c;
@@ -20,17 +19,15 @@
   --color-danger: #ff3b30;
   --color-success: #30d158;
 
-  --color-vulnerable: var(--color-danger);
+    --color-vulnerable: var(--color-danger);
   --color-resisted: var(--color-success);
   --color-error-state: var(--color-warning);
   --color-neutral: var(--color-mute);
 
-  
-  --font-mono: "Berkeley Mono", ui-monospace, "SF Mono", "Cascadia Code",
+    --font-mono: "Berkeley Mono", ui-monospace, "SF Mono", "Cascadia Code",
     Consolas, monospace;
 
-  
-  --space-xxs: 1px;
+    --space-xxs: 1px;
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -39,8 +36,7 @@
   --space-xxl: 32px;
   --space-section: 48px;
 
-  /* Radii */
-  --radius-none: 0px;
+    --radius-none: 0px;
   --radius-sm: 4px;
   --radius-full: 9999px;
 }
@@ -73,13 +69,11 @@ a:hover {
   color: var(--color-ink-deep);
 }
 
-
 .page {
   max-width: 960px;
   margin: 0 auto;
   padding: var(--space-xl) var(--space-lg);
 }
-
 
 .primary-nav {
   display: flex;
@@ -115,7 +109,6 @@ a:hover {
   color: var(--color-ink);
 }
 
-
 .section-label {
   font-size: 16px;
   font-weight: 700;
@@ -124,10 +117,6 @@ a:hover {
   border-bottom: 1px solid var(--color-hairline-strong);
   margin-bottom: var(--space-lg);
 }
-
-/* ==========================================================================
-   Data table
-   ========================================================================== */
 
 .data-table {
   width: 100%;
@@ -181,8 +170,6 @@ a:hover {
   white-space: nowrap;
 }
 
-
-
 .status-badge {
   display: inline-block;
   font-family: var(--font-mono);
@@ -214,8 +201,6 @@ a:hover {
   color: var(--color-neutral);
 }
 
-
-
 .back-link {
   display: inline-block;
   font-size: 14px;
@@ -227,8 +212,6 @@ a:hover {
 .back-link:hover {
   color: var(--color-ink);
 }
-
-
 
 .run-card {
   border: 1px solid var(--color-hairline);
@@ -256,6 +239,56 @@ a:hover {
   color: var(--color-mute);
 }
 
+.compare-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-sm) 0 var(--space-lg) 0;
+}
+
+.compare-bar__hint {
+  font-size: 14px;
+  color: var(--color-mute);
+}
+
+.button-secondary:disabled {
+  background-color: var(--color-surface-card);
+  color: var(--color-ash);
+  border-color: var(--color-hairline);
+  cursor: not-allowed;
+}
+
+.cell-checkbox {
+  width: 32px;
+}
+
+.compare-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-ink);
+  cursor: pointer;
+}
+
+.verdict {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.verdict--improved {
+  color: var(--color-success);
+}
+
+.verdict--regressed {
+  color: var(--color-danger);
+}
+
+.verdict--unchanged {
+  color: var(--color-mute);
+}
+
+.verdict--n-a {
+  color: var(--color-ash);
+}
 
 .empty-state {
   padding: var(--space-xxl) var(--space-lg);
@@ -269,7 +302,6 @@ a:hover {
   border-radius: var(--radius-sm);
   color: var(--color-ink);
 }
-
 
 .button-primary {
   display: inline-block;

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Compare #{{ run_id_1 }} vs #{{ run_id_2 }} — AgentShield{% endblock %}
+
+{% block content %}
+  <a href="/dashboard/runs" class="back-link">&larr; All runs</a>
+
+  <h1 class="section-label">
+    Comparing Run #{{ run_id_1 }} &rarr; Run #{{ run_id_2 }}
+  </h1>
+
+  {% if entries %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Attack</th>
+          <th>Run #{{ run_id_1 }}</th>
+          <th>Run #{{ run_id_2 }}</th>
+          <th>Verdict</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in entries %}
+          <tr>
+            <td>{{ entry.attack_name }}</td>
+            <td>
+              {% if entry.run_1_success is none %}
+                <span class="status-badge status-badge--na">N/A</span>
+              {% elif entry.run_1_success %}
+                <span class="status-badge status-badge--vulnerable">VULNERABLE</span>
+              {% else %}
+                <span class="status-badge status-badge--resisted">RESISTED</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if entry.run_2_success is none %}
+                <span class="status-badge status-badge--na">N/A</span>
+              {% elif entry.run_2_success %}
+                <span class="status-badge status-badge--vulnerable">VULNERABLE</span>
+              {% else %}
+                <span class="status-badge status-badge--resisted">RESISTED</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="verdict verdict--{{ entry.verdict | lower | replace('/', '-') }}">{{ entry.verdict }}</span>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      No attacks in common between these two runs.
+    </div>
+  {% endif %}
+{% endblock %}

@@ -170,3 +170,68 @@ def test_run_detail_returns_404_for_nonexistent() -> None:
 
     response = client.get("/dashboard/runs/99999")
     assert response.status_code == 404
+
+
+def test_compare_dashboard_returns_200() -> None:
+    """GET /dashboard/compare/1/2 returns 200 with HTML content-type."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/1/2")
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+
+
+def test_compare_dashboard_contains_run_ids() -> None:
+    """GET /dashboard/compare/1/2 response body contains both run IDs."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/1/2")
+    body = response.text
+    assert "1" in body
+    assert "2" in body
+
+
+def test_compare_dashboard_contains_attack_name() -> None:
+    """GET /dashboard/compare/1/2 response body contains the attack name."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/1/2")
+    body = response.text
+    assert "injection" in body
+
+
+def test_compare_dashboard_contains_verdict() -> None:
+    """GET /dashboard/compare/1/2 response body contains a verdict."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/1/2")
+    body = response.text
+    assert "UNCHANGED" in body or "IMPROVED" in body or "REGRESSED" in body
+
+
+def test_compare_dashboard_returns_404_for_first_nonexistent() -> None:
+    """GET /dashboard/compare/99999/1 returns 404."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/99999/1")
+    assert response.status_code == 404
+
+
+def test_compare_dashboard_returns_404_for_second_nonexistent() -> None:
+    """GET /dashboard/compare/1/99999 returns 404."""
+    engine = _make_engine()
+    _seed(engine)
+    client = _get_client(engine)
+
+    response = client.get("/dashboard/compare/1/99999")
+    assert response.status_code == 404
