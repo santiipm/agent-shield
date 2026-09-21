@@ -17,6 +17,7 @@ from agentshield.persistence.db import (
     get_run_results,
     init_db,
     list_runs,
+    resolve_db_path,
 )
 
 from .schemas import AttackResultSummary, CompareEntry, RunDetail, RunSummary
@@ -28,7 +29,7 @@ def _get_engine() -> Engine:
     """Return the active database engine, creating it on first call."""
     global _engine  # noqa: PLW0603
     if _engine is None:
-        _engine = get_engine("agentshield.db")
+        _engine = get_engine(resolve_db_path())
         init_db(_engine)
     return _engine
 

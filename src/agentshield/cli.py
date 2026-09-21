@@ -45,7 +45,12 @@ async def _run_attacks(model: str) -> None:
     from agentshield.attacks.prompt_injection.role_override import RoleOverrideAttack
     from agentshield.core.runner import Runner
     from agentshield.evaluators.keyword_evaluator import KeywordEvaluator
-    from agentshield.persistence.db import get_engine, init_db, save_run
+    from agentshield.persistence.db import (
+        get_engine,
+        init_db,
+        resolve_db_path,
+        save_run,
+    )
     from agentshield.reporting.console_report import print_summary
     from agentshield.reporting.json_report import save_report
 
@@ -73,7 +78,7 @@ async def _run_attacks(model: str) -> None:
     report_path = save_report(all_results)
     typer.echo(f"Report saved to: {report_path}")
 
-    engine = get_engine("agentshield.db")
+    engine = get_engine(resolve_db_path())
     init_db(engine)
     run_id = save_run(engine, model, report_path, all_results)
     typer.echo(f"Run persisted with id: {run_id}")
@@ -82,9 +87,14 @@ async def _run_attacks(model: str) -> None:
 @app.command()
 def history() -> None:
     """List past evaluation runs."""
-    from agentshield.persistence.db import get_engine, init_db, list_runs
+    from agentshield.persistence.db import (
+        get_engine,
+        init_db,
+        list_runs,
+        resolve_db_path,
+    )
 
-    engine = get_engine("agentshield.db")
+    engine = get_engine(resolve_db_path())
     init_db(engine)
     runs = list_runs(engine)
 
@@ -111,9 +121,14 @@ def compare(
 ) -> None:
     """Compare two runs by attack, showing improvements/regressions."""
     from agentshield.compare import compare_runs
-    from agentshield.persistence.db import get_engine, get_run_results, init_db
+    from agentshield.persistence.db import (
+        get_engine,
+        get_run_results,
+        init_db,
+        resolve_db_path,
+    )
 
-    engine = get_engine("agentshield.db")
+    engine = get_engine(resolve_db_path())
     init_db(engine)
 
     results_1 = get_run_results(engine, run_id_1)

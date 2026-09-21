@@ -1,5 +1,6 @@
 """Database functions for SQLite persistence."""
 
+import os
 from collections.abc import Sequence
 
 from sqlalchemy import create_engine
@@ -10,8 +11,16 @@ from agentshield.core.result import AttackResult
 
 from .models import AttackResultRow, Base, Run
 
+DEFAULT_DB_PATH = "agentshield.db"
 
-def get_engine(db_path: str = "agentshield.db") -> Engine:
+
+def resolve_db_path() -> str:
+    """Return the database path from the environment variable or the default."""
+    env_val = os.environ.get("AGENTSHIELD_DB_PATH", "")
+    return env_val if env_val else DEFAULT_DB_PATH
+
+
+def get_engine(db_path: str = DEFAULT_DB_PATH) -> Engine:
     """Create and return a SQLAlchemy engine for the given SQLite path."""
     return create_engine(f"sqlite:///{db_path}", echo=False)
 

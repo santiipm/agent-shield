@@ -1,15 +1,18 @@
 """Tests for SQLite persistence layer."""
 
+import pytest
 from sqlalchemy import create_engine, inspect
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 
 from agentshield.core.result import AttackResult
 from agentshield.persistence.db import (
+    DEFAULT_DB_PATH,
     get_run_by_id,
     get_run_results,
     init_db,
     list_runs,
+    resolve_db_path,
     save_run,
 )
 from agentshield.persistence.models import AttackResultRow, Run
@@ -203,3 +206,21 @@ def test_get_run_by_id_not_found() -> None:
 
     run = get_run_by_id(engine, 999)
     assert run is None
+
+
+def test_resolve_db_path_default(monkeypatch: pytest.MonkeyPatch) -> None:
+    """resolve_db_path returns the default when the env var is unset."""
+    monkeypatch.delenv("AGENTSHIELD_DB_PATH", raising=False)
+    assert resolve_db_path() == DEFAULT_DB_PATH
+
+
+def test_resolve_db_path_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    """resolve_db_path returns the env var value when set."""
+    monkeypatch.setenv("AGENTSHIELD_DB_PATH", "/tmp/custom.db")
+    assert resolve_db_path() == "/tmp/custom.db"
+
+
+def test_resolve_db_path_empty_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    """resolve_db_path returns the default when the env var is empty."""
+    monkeypatch.setenv("AGENTSHIELD_DB_PATH", "")
+    assert resolve_db_path() == DEFAULT_DB_PATH
