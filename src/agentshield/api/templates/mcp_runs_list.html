@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}MCP Runs — AgentShield{% endblock %}
+
+{% block content %}
+  <h1 class="section-label">Recent MCP Runs</h1>
+
+  {% if runs %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Run ID</th>
+          <th>Timestamp</th>
+          <th>Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for run in runs %}
+          <tr>
+            <td class="cell-id">
+              <a href="/dashboard/mcp-runs/{{ run.id }}">#{{ run.id }}</a>
+            </td>
+            <td class="cell-timestamp">
+              <a href="/dashboard/mcp-runs/{{ run.id }}">{{ run.timestamp }}</a>
+            </td>
+            <td>
+              <a href="/dashboard/mcp-runs/{{ run.id }}">{{ run.model }}</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="empty-state">
+      No MCP runs yet — use <code>agentshield run-mcp --model &lt;name&gt;</code> to get started.
+    </div>
+  {% endif %}
+{% endblock %}

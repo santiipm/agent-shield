@@ -175,6 +175,85 @@ def serve() -> None:
     api_main()
 
 
+@app.command()
+def run_mcp(
+    model: str = typer.Option(..., help="Ollama model name to use for attacks"),
+) -> None:
+    """Run MCP tool-poisoning attacks against the specified model."""
+    from agentshield.logging_config import configure_logging
+
+    configure_logging()
+    asyncio.run(_run_mcp_attacks(model))
+
+
+async def _run_mcp_attacks(model: str) -> None:
+    """Execute MCP attacks against the given model and report results."""
+    from agentshield.mcp.attacks.fake_compliance_tool import FakeComplianceToolAttack
+    from agentshield.mcp.ollama_tool_agent import OllamaToolCallingAgent
+    from agentshield.mcp.runner import ToolCallingRunner
+    from agentshield.persistence.db import get_engine, init_db, resolve_db_path
+    from agentshield.persistence.mcp_db import save_mcp_run
+    from agentshield.reporting.mcp_json_report import save_mcp_report
+
+    agent = OllamaToolCallingAgent(model=model)
+    attack = FakeComplianceToolAttack()
+    runner = ToolCallingRunner()
+
+    results = await runner.run(agent, [attack])
+
+    console = Console()
+    table = Table(title="MCP Attack Results Summary")
+    table.add_column("Attack", style="bold")
+    table.add_column("Category")
+    table.add_column("Result")
+
+    for result in results:
+        if result.error:
+            result_text = "[yellow]ERROR[/yellow]"
+        elif result.compromised:
+            result_text = "[red]COMPROMISED[/red]"
+        else:
+            result_text = "[green]CLEAN[/green]"
+
+        table.add_row(result.attack_name, result.category, result_text)
+
+    console.print(table)
+
+    report_path = save_mcp_report(results)
+    typer.echo(f"Report saved to: {report_path}")
+
+    engine = get_engine(resolve_db_path())
+    init_db(engine)
+    run_id = save_mcp_run(engine, model, report_path, results)
+    typer.echo(f"Run persisted with id: {run_id}")
+
+
+@app.command()
+def mcp_history() -> None:
+    """List past MCP tool-poisoning runs."""
+    from agentshield.persistence.db import get_engine, init_db, resolve_db_path
+    from agentshield.persistence.mcp_db import list_mcp_runs
+
+    engine = get_engine(resolve_db_path())
+    init_db(engine)
+    runs = list_mcp_runs(engine)
+
+    console = Console()
+    table = Table(title="MCP Evaluation History")
+    table.add_column("Run ID", style="bold")
+    table.add_column("Timestamp")
+    table.add_column("Model")
+
+    for run in runs:
+        table.add_row(
+            str(run["id"]),
+            str(run["timestamp"]),
+            str(run["model"]),
+        )
+
+    console.print(table)
+
+
 @app.callback(invoke_without_command=True)
 def main() -> None:
     """CLI tool for AI agent security evaluation."""

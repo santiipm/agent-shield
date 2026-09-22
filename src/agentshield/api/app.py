@@ -19,8 +19,19 @@ from agentshield.persistence.db import (
     list_runs,
     resolve_db_path,
 )
+from agentshield.persistence.mcp_db import (
+    get_mcp_run_by_id,
+    get_mcp_run_results,
+    init_mcp_db,
+    list_mcp_runs,
+)
 
-from .schemas import AttackResultSummary, CompareEntry, RunDetail, RunSummary
+from .schemas import (
+    AttackResultSummary,
+    CompareEntry,
+    RunDetail,
+    RunSummary,
+)
 
 _engine: Engine | None = None
 
@@ -173,6 +184,47 @@ def compare_dashboard(request: Request, run_id_1: int, run_id_2: int) -> HTMLRes
         request,
         "compare.html",
         {"run_id_1": run_id_1, "run_id_2": run_id_2, "entries": entries},
+    )
+    return html
+
+
+@app.get("/dashboard/mcp-runs", response_class=HTMLResponse)
+def mcp_runs_dashboard(request: Request) -> HTMLResponse:
+    """Render the MCP runs list page."""
+    engine = _get_engine()
+    init_mcp_db(engine)
+    rows = list_mcp_runs(engine)
+    runs = [
+        RunSummary(
+            id=int(r["id"]),  # type: ignore[call-overload]
+            timestamp=r["timestamp"],  # type: ignore[arg-type]
+            model=str(r["model"]),
+        )
+        for r in rows
+    ]
+    html = templates.TemplateResponse(
+        request, "mcp_runs_list.html", {"runs": runs}
+    )
+    return html
+
+
+@app.get("/dashboard/mcp-runs/{mcp_run_id}", response_class=HTMLResponse)
+def mcp_run_detail_dashboard(
+    request: Request, mcp_run_id: int
+) -> HTMLResponse:
+    """Render the MCP run detail page."""
+    engine = _get_engine()
+    init_mcp_db(engine)
+    mcp_run = get_mcp_run_by_id(engine, mcp_run_id)
+    if mcp_run is None:
+        raise HTTPException(
+            status_code=404, detail=f"MCP run {mcp_run_id} not found"
+        )
+    results = get_mcp_run_results(engine, mcp_run_id)
+    html = templates.TemplateResponse(
+        request,
+        "mcp_run_detail.html",
+        {"run": mcp_run, "results": results},
     )
     return html
 

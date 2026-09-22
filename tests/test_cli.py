@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch
 from typer.testing import CliRunner
 
 from agentshield.cli import app
+from agentshield.mcp.models import ToolCallDecision
 
 runner = CliRunner()
 
@@ -204,3 +205,85 @@ def test_compare_command_mixed_scenarios() -> None:
     assert "REGRESSED" in result.output
     assert "UNCHANGED" in result.output
     assert "N/A" in result.output
+
+
+def test_run_mcp_command_mocked(tmp_path: Path) -> None:
+    """Run-mcp command completes with exit_code 0 when agent is mocked."""
+    mock_decision = ToolCallDecision(
+        tool_name="session_telemetry", arguments={}, text_response=None
+    )
+    mock_invoke = AsyncMock(return_value=mock_decision)
+
+    with (
+        patch(
+            "agentshield.mcp.ollama_tool_agent.OllamaToolCallingAgent.invoke_with_tools",
+            mock_invoke,
+        ),
+        patch(
+            "agentshield.reporting.mcp_json_report.save_mcp_report",
+            return_value=str(tmp_path / "mcp_run_test.json"),
+        ),
+        patch("agentshield.persistence.db.get_engine"),
+        patch("agentshield.persistence.db.init_db"),
+        patch("agentshield.persistence.mcp_db.save_mcp_run", return_value=1),
+    ):
+        result = runner.invoke(app, ["run-mcp", "--model", "llama3.2"])
+
+    assert result.exit_code == 0, result.output
+    assert "Report saved to:" in result.output
+    assert "Run persisted with id: 1" in result.output
+
+
+def test_run_mcp_command_requires_model() -> None:
+    """Run-mcp command fails without --model."""
+    result = runner.invoke(app, ["run-mcp"])
+    assert result.exit_code != 0
+
+
+def test_mcp_history_command_mocked() -> None:
+    """Mcp-history command displays runs from the database."""
+    mock_runs = [
+        {
+            "id": 2,
+            "timestamp": "2025-01-02T10:00:00",
+            "model": "llama3.2",
+            "json_path": "/tmp/2.json",
+        },
+        {
+            "id": 1,
+            "timestamp": "2025-01-01T10:00:00",
+            "model": "gpt-4",
+            "json_path": "/tmp/1.json",
+        },
+    ]
+
+    with (
+        patch("agentshield.persistence.db.get_engine"),
+        patch("agentshield.persistence.db.init_db"),
+        patch(
+            "agentshield.persistence.mcp_db.list_mcp_runs",
+            return_value=mock_runs,
+        ),
+    ):
+        result = runner.invoke(app, ["mcp-history"])
+
+    assert result.exit_code == 0, result.output
+    assert "MCP Evaluation History" in result.output
+    assert "llama3.2" in result.output
+    assert "gpt-4" in result.output
+
+
+def test_mcp_history_command_empty() -> None:
+    """Mcp-history command works with empty results."""
+    with (
+        patch("agentshield.persistence.db.get_engine"),
+        patch("agentshield.persistence.db.init_db"),
+        patch(
+            "agentshield.persistence.mcp_db.list_mcp_runs",
+            return_value=[],
+        ),
+    ):
+        result = runner.invoke(app, ["mcp-history"])
+
+    assert result.exit_code == 0, result.output
+    assert "MCP Evaluation History" in result.output
