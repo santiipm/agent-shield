@@ -327,7 +327,7 @@ def test_mcp_runs_dashboard_contains_section_label() -> None:
 
     response = client.get("/dashboard/mcp-runs")
     body = response.text
-    assert "Recent MCP Runs" in body
+    assert "MCP Tool-Calling Runs" in body
 
 
 def test_mcp_run_detail_returns_200() -> None:

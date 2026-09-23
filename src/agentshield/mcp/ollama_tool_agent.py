@@ -1,5 +1,7 @@
 """Ollama-backed agent that supports tool-calling via /api/chat."""
 
+import os
+
 import httpx
 
 from agentshield.mcp.models import ToolCallDecision, ToolDefinition
@@ -8,9 +10,11 @@ from agentshield.mcp.models import ToolCallDecision, ToolDefinition
 class OllamaToolCallingAgent:
     """Agent that sends prompts with tool definitions to a local Ollama server."""
 
-    def __init__(self, model: str, base_url: str = "http://localhost:11434") -> None:
+    def __init__(self, model: str, base_url: str | None = None) -> None:
         self._model = model
-        self._base_url = base_url
+        self._base_url = base_url or os.environ.get(
+            "OLLAMA_BASE_URL", "http://localhost:11434"
+        )
         self._client = httpx.AsyncClient(timeout=60.0)
 
     async def invoke_with_tools(

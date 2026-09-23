@@ -78,6 +78,21 @@ async def test_http_error_propagates() -> None:
         await agent.invoke_with_tools("test", _TOOLS)
 
 
+def test_base_url_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that base_url respects OLLAMA_BASE_URL env var."""
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://custom-host:9999")
+    agent = OllamaToolCallingAgent(model="llama3")
+    assert agent._base_url == "http://custom-host:9999"
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+
+
+def test_base_url_default_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that base_url defaults to localhost when OLLAMA_BASE_URL is unset."""
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+    agent = OllamaToolCallingAgent(model="llama3")
+    assert agent._base_url == "http://localhost:11434"
+
+
 def _make_agent(response_data: dict[str, Any]) -> OllamaToolCallingAgent:
     """Create an OllamaToolCallingAgent with a mocked transport."""
 

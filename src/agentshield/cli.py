@@ -169,7 +169,7 @@ def compare(
 
 @app.command()
 def serve() -> None:
-    """Start the read-only API server on http://127.0.0.1:8000."""
+    """Start the read-only API server on http://0.0.0.0:8000."""
     from agentshield.api.app import main as api_main
 
     api_main()

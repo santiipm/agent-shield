@@ -88,6 +88,21 @@ async def test_invoke_propagates_timeout() -> None:
         await agent.invoke("test")
 
 
+def test_base_url_env_override(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that base_url respects OLLAMA_BASE_URL env var."""
+    monkeypatch.setenv("OLLAMA_BASE_URL", "http://custom-host:9999")
+    agent = OllamaAgent(model="llama3")
+    assert agent._base_url == "http://custom-host:9999"
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+
+
+def test_base_url_default_when_env_unset(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Test that base_url defaults to localhost when OLLAMA_BASE_URL is unset."""
+    monkeypatch.delenv("OLLAMA_BASE_URL", raising=False)
+    agent = OllamaAgent(model="llama3")
+    assert agent._base_url == "http://localhost:11434"
+
+
 def _mock_transport(response_data: dict[str, Any]) -> httpx.MockTransport:
     """Create a MockTransport that returns the given JSON for any request."""
 
