@@ -48,7 +48,7 @@ class AttackResultRow(Base):
     def __repr__(self) -> str:
         return f"<AttackResultRow attack_name={self.attack_name!r}>"
 
-    
+
 
 class McpRun(Base):
     """A single MCP tool-poisoning run."""
